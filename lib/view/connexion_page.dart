@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:whatsapp_like/controller/firebase_manager.dart';
 import 'package:whatsapp_like/controller/global.dart';
 import 'package:whatsapp_like/view/contacts_pages.dart';
@@ -10,6 +13,11 @@ class LoginPage extends StatefulWidget {
     State<LoginPage> createState() => _LoginPageState();
 }
 
+// TODO : Add verification email
+// TODO : Configure popin
+// TODO : Check if mdp is good
+// TODO ? Add popin error
+// TODO : Add lottie animation
 class _LoginPageState extends State<LoginPage> {
     List<bool> selection = [ true, false ];
 
@@ -17,12 +25,16 @@ class _LoginPageState extends State<LoginPage> {
     TextEditingController lastname = TextEditingController();
     TextEditingController email = TextEditingController();
     TextEditingController password = TextEditingController();
-
+    
+    XFile? image;
     late bool passwordVisible;
+
+    final ImagePicker picker = ImagePicker();
 
     @override
     void initState() {
         passwordVisible = false;
+        image = null;
         super.initState();
     }
 
@@ -35,6 +47,62 @@ class _LoginPageState extends State<LoginPage> {
         super.dispose();
     }
 
+    void clearInputs() {
+        firstname.clear();
+        lastname.clear();
+        image = null;
+        email.clear();
+        password.clear();
+    }
+
+    // Popin to upload avatar
+    void popinUploadAvatar() {
+        showDialog(
+            context: context,
+            builder: (BuildContext context) => AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                title: const Text("Choix du média pour upload l'avatar: "),
+                content: SizedBox(
+                    height: MediaQuery.of(context).size.height / 6,
+                    child: Column(
+                        children: [
+                            ElevatedButton(
+                                onPressed: () {
+                                    Navigator.pop(context);
+                                    getImage(ImageSource.gallery);
+                                },
+                                child: Row(
+                                    children: const [
+                                        Icon(Icons.image),
+                                        Text("Depuis la galerie"),
+                                    ],
+                                ),
+                            ),
+                            ElevatedButton(
+                                onPressed: () {
+                                    Navigator.pop(context);
+                                    getImage(ImageSource.camera);
+                                },
+                                child: Row(
+                                    children: const [
+                                        Icon(Icons.camera),
+                                        Text("Depuis la caméra"),
+                                    ],
+                                ),
+                            ),
+                        ],
+                    ),
+                )
+            )
+        );
+    }
+
+    // Get image from gallery
+    Future getImage(ImageSource media) async {
+        var img = await picker.pickImage(source: media);
+        setState(() => image = img);
+    }
+
     @override
     Widget build(BuildContext context) {
         return Scaffold(
@@ -45,6 +113,7 @@ class _LoginPageState extends State<LoginPage> {
         );
     }
 
+    // Page container
     Widget bodyPage() {
         return Center(
             child: Column(
@@ -53,14 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                     appLogo(),
                     buttons(),
                     sizedBoxWidget(36),
-                    selection[1]
-                        ? textFieldWidget(firstname, false, false, const Icon(Icons.person), "Entrez votre prénom", "Prénom")
-                        : const SizedBox.shrink(),
-                    selection[1] ? sizedBoxWidget(16) : const SizedBox.shrink(),
-                    selection[1]
-                        ? (textFieldWidget(lastname, false, false, const Icon(Icons.person), "Entrez votre nom", "Nom"))
-                        : const SizedBox.shrink(),
-                    selection[1] ? sizedBoxWidget(16) : const SizedBox.shrink(),
+                    selection[1] ? additionalsElements() : const SizedBox.shrink(),
                     textFieldWidget(email, false, false, const Icon(Icons.email), "Entrez votre email", "Email"),
                     sizedBoxWidget(16),
                     textFieldWidget(password, true, true, const Icon(Icons.lock), "Entrez votre mot de passe", "Mot de passe"),
@@ -70,15 +132,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
         );
     }
-
-    // Spacing widget to separate elements
-    Widget sizedBoxWidget(double height) => SizedBox(height: height);
-
-    // Text widget for toggleButtons
-    Widget buttonTextWidget(double paddingX, double paddingY, String text) => Padding(
-        padding: EdgeInsets.symmetric(horizontal: paddingX, vertical: paddingY),
-        child: Text(text),
-    );
 
     // Application logo widget
     Widget appLogo() => Container(
@@ -93,20 +146,46 @@ class _LoginPageState extends State<LoginPage> {
         )
     );
 
+    // Spacing widget to separate elements
+    Widget sizedBoxWidget(double height) => SizedBox(height: height);
+
     // ToggleButtons widget
     Widget buttons() => ToggleButtons(
-        onPressed: (value) => setState(() {
-            selection[0] = value == 0;
-            selection[1] = value == 1;
-        }),
+        onPressed: (value) => {
+            FocusScope.of(context).unfocus(),
+            clearInputs(),
+            setState(() {
+                selection[0] = value == 0;
+                selection[1] = value == 1;
+            })
+        },
         borderRadius: BorderRadius.circular(8),
         isSelected: selection,
         children: [
-            buttonTextWidget(16, 8, "Connexion"),
-            buttonTextWidget(16, 8, "Inscription")
+            paddingButtonWidget(16, 8, "Connexion"),
+            paddingButtonWidget(16, 8, "Inscription")
         ]
     );
 
+    // Text widget for toggleButtons
+    Widget paddingButtonWidget(double paddingX, double paddingY, String text) => Padding(
+        padding: EdgeInsets.symmetric(horizontal: paddingX, vertical: paddingY),
+        child: Text(text),
+    );
+
+    // Additional elements for subscription
+    Widget additionalsElements() => Column(
+        children: [
+            textFieldWidget(firstname, false, false, const Icon(Icons.person), "Entrez votre prénom", "Prénom"),
+            sizedBoxWidget(16),
+            textFieldWidget(lastname, false, false, const Icon(Icons.person), "Entrez votre nom", "Nom"),
+            sizedBoxWidget(16),
+            image != null ? avatarWidget(image) : SizedBox(width: 350, child: uploadAvatar("Choisir un avatar")),
+            sizedBoxWidget(16),
+        ],
+    );
+
+    // TextField widget
     Widget textFieldWidget(
         TextEditingController controller, 
         bool isObscure,
@@ -137,6 +216,38 @@ class _LoginPageState extends State<LoginPage> {
         )
     );
 
+    // Avatar widget
+    Widget avatarWidget(image) => Align(
+        alignment: Alignment.center,
+        child: SizedBox(
+            width: 350,
+            child: Row(
+                children: [
+                    Padding(
+                        padding: const EdgeInsets.only(right: 24),
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(32),
+                            child: Image.file(
+                                File(image!.path),
+                                fit: BoxFit.cover,
+                                width: 60,
+                                height: 60,
+                            )
+                        )
+                    ),
+                    SizedBox(width: 266, child: uploadAvatar("Changer d'avatar"))
+                ],
+            )
+        )
+    );
+
+    // Avatar upload widget
+    Widget uploadAvatar(String label) => ElevatedButton(
+        onPressed: popinUploadAvatar,
+        child: Text(label)
+    );
+
+    // ElevatedButton widget
     Widget button() => ElevatedButton(
         onPressed: () => selection[0]
             ? FirebaseManager()
