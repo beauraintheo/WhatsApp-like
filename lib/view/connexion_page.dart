@@ -16,6 +16,14 @@ class _LoginPageState extends State<LoginPage> {
     TextEditingController email = TextEditingController();
     TextEditingController password = TextEditingController();
 
+    late bool passwordVisible;
+
+    @override
+    void initState() {
+        passwordVisible = false;
+        super.initState();
+    }
+
     @override
     void dispose() {
         email.dispose();
@@ -40,11 +48,24 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                     appLogo(),
                     buttons(),
-                    sizedBoxWidget(48),
-                    textFieldWidget(email, false),
+                    sizedBoxWidget(36),
+                    textFieldWidget(
+                        email,
+                        false,
+                        false,
+                        const Icon(Icons.email),
+                        "Entrez votre email"
+                    ),
                     sizedBoxWidget(16),
-                    textFieldWidget(password, true),
+                    textFieldWidget(
+                        password, 
+                        true,
+                        true,
+                        const Icon(Icons.lock),
+                        "Entrez votre mot de passe"
+                    ),
                     sizedBoxWidget(24),
+                    button()
                 ],
             ),
         );
@@ -86,14 +107,32 @@ class _LoginPageState extends State<LoginPage> {
         ]
     );
 
-    Widget textFieldWidget(TextEditingController controller, bool isObscure) => TextField(
-        controller: email,
-        obscureText: isObscure || false,
-        decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.mail),
-            hintText: "Entrez votre adresse mail",
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))
-        ),
+    Widget textFieldWidget(
+        TextEditingController controller, 
+        bool isObscure,
+        bool isPassword,
+        Icon icon,
+        String placeholder
+    ) => SizedBox(
+        width: 350,
+        child: TextField(
+            controller: controller,
+            obscureText: isObscure && !passwordVisible,
+            decoration: InputDecoration(
+                prefixIcon: icon,
+                hintText: placeholder,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                suffixIcon: isPassword 
+                    ? IconButton(
+                        icon: Icon(passwordVisible
+                            ? Icons.visibility 
+                            : Icons.visibility_off
+                        ),
+                        onPressed: () => setState(() => passwordVisible = !passwordVisible)
+                    )
+                    : null
+            ),
+        )
     );
 
     Widget button() => ElevatedButton(
