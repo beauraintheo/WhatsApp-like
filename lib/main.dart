@@ -7,28 +7,28 @@ import 'package:whatsapp_like/view/connexion_page.dart';
 import 'firebase_options.dart';
 
 void main() async {
-  runApp(const MyApp());
+    runApp(const MyApp());
 
-  WidgetsFlutterBinding.ensureInitialized();
+    WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+    );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+    const MyApp({ super.key });
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'WhatsApp Like',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      debugShowCheckedModeBanner: false,
-      home: const LoginPage()
-    );
-  }
+    @override
+    Widget build(BuildContext context) {
+        return MaterialApp(
+            title: 'WhatsApp Like',
+            theme: ThemeData(
+                primarySwatch: Colors.blue,
+            ),
+            debugShowCheckedModeBanner: false,
+            home: const LoginPage()
+        );
+    }
 }
 

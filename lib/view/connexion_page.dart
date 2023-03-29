@@ -13,6 +13,8 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
     List<bool> selection = [ true, false ];
 
+    TextEditingController firstname = TextEditingController();
+    TextEditingController lastname = TextEditingController();
     TextEditingController email = TextEditingController();
     TextEditingController password = TextEditingController();
 
@@ -26,6 +28,8 @@ class _LoginPageState extends State<LoginPage> {
 
     @override
     void dispose() {
+        firstname.dispose();
+        lastname.dispose();
         email.dispose();
         password.dispose();
         super.dispose();
@@ -49,21 +53,17 @@ class _LoginPageState extends State<LoginPage> {
                     appLogo(),
                     buttons(),
                     sizedBoxWidget(36),
-                    textFieldWidget(
-                        email,
-                        false,
-                        false,
-                        const Icon(Icons.email),
-                        "Entrez votre email"
-                    ),
+                    selection[1]
+                        ? textFieldWidget(firstname, false, false, const Icon(Icons.person), "Entrez votre prénom", "Prénom")
+                        : const SizedBox.shrink(),
+                    selection[1] ? sizedBoxWidget(16) : const SizedBox.shrink(),
+                    selection[1]
+                        ? (textFieldWidget(lastname, false, false, const Icon(Icons.person), "Entrez votre nom", "Nom"))
+                        : const SizedBox.shrink(),
+                    selection[1] ? sizedBoxWidget(16) : const SizedBox.shrink(),
+                    textFieldWidget(email, false, false, const Icon(Icons.email), "Entrez votre email", "Email"),
                     sizedBoxWidget(16),
-                    textFieldWidget(
-                        password, 
-                        true,
-                        true,
-                        const Icon(Icons.lock),
-                        "Entrez votre mot de passe"
-                    ),
+                    textFieldWidget(password, true, true, const Icon(Icons.lock), "Entrez votre mot de passe", "Mot de passe"),
                     sizedBoxWidget(24),
                     button()
                 ],
@@ -112,7 +112,8 @@ class _LoginPageState extends State<LoginPage> {
         bool isObscure,
         bool isPassword,
         Icon icon,
-        String placeholder
+        String placeholder,
+        String inputLabel
     ) => SizedBox(
         width: 350,
         child: TextField(
@@ -120,6 +121,7 @@ class _LoginPageState extends State<LoginPage> {
             obscureText: isObscure && !passwordVisible,
             decoration: InputDecoration(
                 prefixIcon: icon,
+                labelText: inputLabel,
                 hintText: placeholder,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 suffixIcon: isPassword 
@@ -151,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
                   // PopError();
                 })
             : FirebaseManager()
-                .subscribe(email.text, password.text)
+                .subscribe(firstname.text, lastname.text, email.text, password.text)
                 .then((value) {
                     setState(() => myUser = value);
                     Navigator.push(
