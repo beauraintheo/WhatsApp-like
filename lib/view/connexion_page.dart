@@ -14,7 +14,6 @@ class LoginPage extends StatefulWidget {
 }
 
 // TODO : Add verification email
-// TODO : Configure popin
 // TODO : Check if mdp is good
 // TODO ? Add popin error
 // TODO : Add lottie animation
@@ -23,6 +22,7 @@ class _LoginPageState extends State<LoginPage> {
 
     TextEditingController firstname = TextEditingController();
     TextEditingController lastname = TextEditingController();
+    TextEditingController phonenumber = TextEditingController();
     TextEditingController email = TextEditingController();
     TextEditingController password = TextEditingController();
     
@@ -42,14 +42,17 @@ class _LoginPageState extends State<LoginPage> {
     void dispose() {
         firstname.dispose();
         lastname.dispose();
+        phonenumber.dispose();
         email.dispose();
         password.dispose();
         super.dispose();
     }
 
+    // Clear inputs while switching page
     void clearInputs() {
         firstname.clear();
         lastname.clear();
+        phonenumber.clear();
         image = null;
         email.clear();
         password.clear();
@@ -63,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 title: const Text("Choix du média pour upload l'avatar: "),
                 content: SizedBox(
-                    height: MediaQuery.of(context).size.height / 6,
+                    height: MediaQuery.of(context).size.height / 8,
                     child: Column(
                         children: [
                             ElevatedButton(
@@ -74,22 +77,14 @@ class _LoginPageState extends State<LoginPage> {
                                 child: Row(
                                     children: const [
                                         Icon(Icons.image),
-                                        Text("Depuis la galerie"),
+                                        Padding(
+                                            padding: EdgeInsets.only(left: 16.0),
+                                            child: Text("Depuis la galerie"),
+                                        ),
                                     ],
                                 ),
                             ),
-                            ElevatedButton(
-                                onPressed: () {
-                                    Navigator.pop(context);
-                                    getImage(ImageSource.camera);
-                                },
-                                child: Row(
-                                    children: const [
-                                        Icon(Icons.camera),
-                                        Text("Depuis la caméra"),
-                                    ],
-                                ),
-                            ),
+                            popinButton(ImageSource.gallery, "Depuis la caméra"),
                         ],
                     ),
                 )
@@ -180,6 +175,8 @@ class _LoginPageState extends State<LoginPage> {
             sizedBoxWidget(16),
             textFieldWidget(lastname, false, false, const Icon(Icons.person), "Entrez votre nom", "Nom"),
             sizedBoxWidget(16),
+            textFieldWidget(lastname, false, false, const Icon(Icons.person), "Entrez votre numéro de téléphone", "Numéro de téléphone"),
+            sizedBoxWidget(16),
             image != null ? avatarWidget(image) : SizedBox(width: 350, child: uploadAvatar("Choisir un avatar")),
             sizedBoxWidget(16),
         ],
@@ -264,7 +261,7 @@ class _LoginPageState extends State<LoginPage> {
                   // PopError();
                 })
             : FirebaseManager()
-                .subscribe(firstname.text, lastname.text, email.text, password.text)
+                .subscribe(firstname.text, lastname.text, email.text, password.text, phonenumber.text)
                 .then((value) {
                     setState(() => myUser = value);
                     Navigator.push(
@@ -278,5 +275,21 @@ class _LoginPageState extends State<LoginPage> {
                 }
         ),
         child: Text(selection[0] ? "Connexion" : "Inscription")
+    );
+
+    Widget popinButton(imageSource, label) => ElevatedButton(
+        onPressed: () {
+            Navigator.pop(context);
+            getImage(imageSource);
+        },
+        child: Row(
+            children: [
+                const Icon(Icons.image),
+                Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Text(label),
+                ),
+            ],
+        ),
     );
 }

@@ -6,6 +6,7 @@ class Utilisateur {
 
     String? lastname;
     String? firstname;
+    String? phonenumber;
     String? avatar;
 
     Utilisateur.empty(){
@@ -20,6 +21,7 @@ class Utilisateur {
         email = map["email"];
         lastname = map["lastname"];
         firstname = map["firstname"];
+        phonenumber = map["phonenumber"];
         avatar = map["avatar"];
     }
 }

@@ -15,7 +15,8 @@ class FirebaseManager {
         String firstname,
         String lastname,
         String email,
-        String password
+        String password,
+        String phonenumber
     ) async {
         UserCredential authResult = await auth.createUserWithEmailAndPassword(
             email: email,
@@ -29,7 +30,8 @@ class FirebaseManager {
             Map<String,dynamic> map = { 
                 "firstname": firstname,
                 "lastname": lastname,
-                "email": email
+                "email": email,
+                "phonenumber": phonenumber,
             };
 
             addUser(uid, map);
