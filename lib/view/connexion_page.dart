@@ -1,7 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/cupertino.dart';
+
 import 'package:image_picker/image_picker.dart';
+import 'package:lottie/lottie.dart';
+
 import 'package:whatsapp_like/controller/firebase_manager.dart';
 import 'package:whatsapp_like/controller/global.dart';
 import 'package:whatsapp_like/view/contacts_pages.dart';
@@ -12,10 +17,6 @@ class LoginPage extends StatefulWidget {
     @override
     State<LoginPage> createState() => _LoginPageState();
 }
-
-// TODO : Check if mdp is good
-// TODO : Add popin error
-// TODO : Add lottie animation
 class _LoginPageState extends State<LoginPage> {
     List<bool> selection = [ true, false ];
 
@@ -65,10 +66,20 @@ class _LoginPageState extends State<LoginPage> {
         image = null;
         _email.clear();
         _password.clear();
+
+        formFieldsDirty = {
+            "firstname": false,
+            "lastname": false,
+            "phonenumber": false,
+            "email": false,
+            "password": false,
+        };
     }
 
+    // Validators for each input
     String? validator(String? value, String key) {
         if (emptyValidator(value!)) return "Veuillez renseigner ce champ";
+        if (key == "phonenumber" && phoneNumberValidator(value)) return "Veuillez entrer un numéro de téléphone valide";
         if (key == "email" && emailValidator(value)) return "Veuillez entrer une adresse email valide";
         if (key == "password" && passwordValidator(value)) return "Le mot de passe doit faire au moins 6 caractères";
         
@@ -81,9 +92,9 @@ class _LoginPageState extends State<LoginPage> {
             context: context,
             builder: (BuildContext context) => AlertDialog(
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                title: const Text("Choix du média pour upload l'avatar: "),
+                title: const Text("Choisir le média pour votre avatar: "),
                 content: SizedBox(
-                    height: MediaQuery.of(context).size.height / 8,
+                    height: MediaQuery.of(context).size.height / 9,
                     child: Column(
                         children: [
                             ElevatedButton(
@@ -106,6 +117,39 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                 )
             )
+        );
+    }
+
+    // Popin error
+    void popinError() {
+        showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+                if (defaultTargetPlatform == TargetPlatform.iOS) {
+                    return CupertinoAlertDialog(
+                        title: const Text("Erreur lors de la connexion !"),
+                        content: Lottie.asset("assets/error.json", width: 75, height: 75),
+                        actions: [
+                            TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("Ok")
+                            )
+                        ],
+                    );
+                } else {
+                    return AlertDialog(
+                        title: const Text("Erreur lors de la connexion !"),
+                        content: Lottie.asset("assets/error.json", width: 75, height: 75),
+                        actions: [
+                            TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("Ok")
+                            )
+                        ],
+                    );
+                }
+            }
         );
     }
 
@@ -143,7 +187,6 @@ class _LoginPageState extends State<LoginPage> {
                         "Entrez votre email",
                         "Email",
                         "email"
-                        // formFieldsDirty["email"]
                     ),
                     sizedBoxWidget(16),
                     textFieldWidget(
@@ -154,7 +197,6 @@ class _LoginPageState extends State<LoginPage> {
                         "Entrez votre mot de passe",
                         "Mot de passe",
                         "password"
-                        // formFieldsDirty["password"]
                     ),
                     sizedBoxWidget(24),
                     button()
@@ -214,7 +256,6 @@ class _LoginPageState extends State<LoginPage> {
                 "Entrez votre prénom",
                 "Prénom",
                 "firstname"
-                // formFieldsDirty["firstname"]
             ),
             sizedBoxWidget(16),
             textFieldWidget(
@@ -225,7 +266,6 @@ class _LoginPageState extends State<LoginPage> {
                 "Entrez votre nom",
                 "Nom",
                 "lastname"
-                // formFieldsDirty["lastname"]
             ),
             sizedBoxWidget(16),
             textFieldWidget(
@@ -324,7 +364,7 @@ class _LoginPageState extends State<LoginPage> {
                         )
                     );
                 }).catchError((onError) {
-                  // PopError();
+                    popinError();
                 })
             : FirebaseManager()
                 .subscribe(_firstname.text, _lastname.text, _email.text, _password.text, _phonenumber.text)
