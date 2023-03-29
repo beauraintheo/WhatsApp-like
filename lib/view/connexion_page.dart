@@ -13,19 +13,28 @@ class LoginPage extends StatefulWidget {
     State<LoginPage> createState() => _LoginPageState();
 }
 
-// TODO : Add verification email
 // TODO : Check if mdp is good
-// TODO ? Add popin error
+// TODO : Add popin error
 // TODO : Add lottie animation
 class _LoginPageState extends State<LoginPage> {
     List<bool> selection = [ true, false ];
 
-    TextEditingController firstname = TextEditingController();
-    TextEditingController lastname = TextEditingController();
-    TextEditingController phonenumber = TextEditingController();
-    TextEditingController email = TextEditingController();
-    TextEditingController password = TextEditingController();
-    
+    // Controllers for each input
+    final TextEditingController _firstname = TextEditingController();
+    final TextEditingController _lastname = TextEditingController();
+    final TextEditingController _phonenumber = TextEditingController();
+    final TextEditingController _email = TextEditingController();
+    final TextEditingController _password = TextEditingController();
+
+    // Boolean to check if input is dirty for validation
+    Map<String, dynamic> formFieldsDirty = {
+        "firstname": false,
+        "lastname": false,
+        "phonenumber": false,
+        "email": false,
+        "password": false,
+    };
+
     XFile? image;
     late bool passwordVisible;
 
@@ -40,22 +49,30 @@ class _LoginPageState extends State<LoginPage> {
 
     @override
     void dispose() {
-        firstname.dispose();
-        lastname.dispose();
-        phonenumber.dispose();
-        email.dispose();
-        password.dispose();
+        _firstname.dispose();
+        _lastname.dispose();
+        _phonenumber.dispose();
+        _email.dispose();
+        _password.dispose();
         super.dispose();
     }
 
     // Clear inputs while switching page
     void clearInputs() {
-        firstname.clear();
-        lastname.clear();
-        phonenumber.clear();
+        _firstname.clear();
+        _lastname.clear();
+        _phonenumber.clear();
         image = null;
-        email.clear();
-        password.clear();
+        _email.clear();
+        _password.clear();
+    }
+
+    String? validator(String? value, String key) {
+        if (emptyValidator(value!)) return "Veuillez renseigner ce champ";
+        if (key == "email" && emailValidator(value)) return "Veuillez entrer une adresse email valide";
+        if (key == "password" && passwordValidator(value)) return "Le mot de passe doit faire au moins 6 caractères";
+        
+        return null;
     }
 
     // Popin to upload avatar
@@ -118,9 +135,27 @@ class _LoginPageState extends State<LoginPage> {
                     buttons(),
                     sizedBoxWidget(36),
                     selection[1] ? additionalsElements() : const SizedBox.shrink(),
-                    textFieldWidget(email, false, false, const Icon(Icons.email), "Entrez votre email", "Email"),
+                    textFieldWidget(
+                        _email,
+                        false,
+                        false,
+                        const Icon(Icons.email),
+                        "Entrez votre email",
+                        "Email",
+                        "email"
+                        // formFieldsDirty["email"]
+                    ),
                     sizedBoxWidget(16),
-                    textFieldWidget(password, true, true, const Icon(Icons.lock), "Entrez votre mot de passe", "Mot de passe"),
+                    textFieldWidget(
+                        _password,
+                        true,
+                        true,
+                        const Icon(Icons.lock),
+                        "Entrez votre mot de passe",
+                        "Mot de passe",
+                        "password"
+                        // formFieldsDirty["password"]
+                    ),
                     sizedBoxWidget(24),
                     button()
                 ],
@@ -171,11 +206,37 @@ class _LoginPageState extends State<LoginPage> {
     // Additional elements for subscription
     Widget additionalsElements() => Column(
         children: [
-            textFieldWidget(firstname, false, false, const Icon(Icons.person), "Entrez votre prénom", "Prénom"),
+            textFieldWidget(
+                _firstname,
+                false,
+                false,
+                const Icon(Icons.person),
+                "Entrez votre prénom",
+                "Prénom",
+                "firstname"
+                // formFieldsDirty["firstname"]
+            ),
             sizedBoxWidget(16),
-            textFieldWidget(lastname, false, false, const Icon(Icons.person), "Entrez votre nom", "Nom"),
+            textFieldWidget(
+                _lastname,
+                false,
+                false,
+                const Icon(Icons.person),
+                "Entrez votre nom",
+                "Nom",
+                "lastname"
+                // formFieldsDirty["lastname"]
+            ),
             sizedBoxWidget(16),
-            textFieldWidget(lastname, false, false, const Icon(Icons.person), "Entrez votre numéro de téléphone", "Numéro de téléphone"),
+            textFieldWidget(
+                _phonenumber,
+                false,
+                false,
+                const Icon(Icons.phone),
+                "Entrez votre numéro de téléphone",
+                "Numéro de téléphone",
+                "phonenumber"
+            ),
             sizedBoxWidget(16),
             image != null ? avatarWidget(image) : SizedBox(width: 350, child: uploadAvatar("Choisir un avatar")),
             sizedBoxWidget(16),
@@ -189,15 +250,20 @@ class _LoginPageState extends State<LoginPage> {
         bool isPassword,
         Icon icon,
         String placeholder,
-        String inputLabel
+        String inputLabel,
+        String key
     ) => SizedBox(
         width: 350,
         child: TextField(
             controller: controller,
             obscureText: isObscure && !passwordVisible,
+            onChanged: (_) => setState(() => formFieldsDirty[key] = true),
             decoration: InputDecoration(
                 prefixIcon: icon,
                 labelText: inputLabel,
+                errorText: formFieldsDirty[key] && validator(controller.text, key) != null 
+                    ? validator(controller.text, key)
+                    : null,
                 hintText: placeholder,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 suffixIcon: isPassword 
@@ -248,7 +314,7 @@ class _LoginPageState extends State<LoginPage> {
     Widget button() => ElevatedButton(
         onPressed: () => selection[0]
             ? FirebaseManager()
-                .connect(email.text, password.text)
+                .connect(_email.text, _password.text)
                 .then((value) {
                     setState(() => myUser = value);
                     Navigator.push(
@@ -261,7 +327,7 @@ class _LoginPageState extends State<LoginPage> {
                   // PopError();
                 })
             : FirebaseManager()
-                .subscribe(firstname.text, lastname.text, email.text, password.text, phonenumber.text)
+                .subscribe(_firstname.text, _lastname.text, _email.text, _password.text, _phonenumber.text)
                 .then((value) {
                     setState(() => myUser = value);
                     Navigator.push(
@@ -292,4 +358,29 @@ class _LoginPageState extends State<LoginPage> {
             ],
         ),
     );
+
+    // Empty validator
+    bool emptyValidator(String value) => value.isEmpty;
+
+    // Password validator
+    bool passwordValidator(String value) => value.length < 6;
+
+    // Phonenumber validator
+    bool phoneNumberValidator(String value) {
+        const pattern = r"^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$";
+        final RegExp regex = RegExp(pattern);
+
+        return !regex.hasMatch(value);
+    }
+
+    // Email validator
+    bool emailValidator(String value) {
+        const String emailPattern =
+            r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]"
+            r"{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}"
+            r"[a-zA-Z0-9])?)*$";
+        final RegExp regex = RegExp(emailPattern);
+
+        return !regex.hasMatch(value);
+    }
 }
