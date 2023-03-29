@@ -1,9 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:whatsapp_like/controller/firebase_manager.dart';
 import 'package:whatsapp_like/controller/global.dart';
-import 'package:flutter/foundation.dart';
-
+import 'package:whatsapp_like/view/contacts_pages.dart';
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -38,7 +36,7 @@ class _LoginPageState extends State<LoginPage> {
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(24),
                 image: const DecorationImage(
-                    image: AssetImage("assets/zelda.png"), 
+                    image: AssetImage("assets/danganronpa.png"), 
                     fit: BoxFit.fill
                   )
                 ),
@@ -80,13 +78,16 @@ class _LoginPageState extends State<LoginPage> {
             onPressed: () {
               if (selection[0]) {
                 FirebaseManager()
-                    .connect(email.text, password.text)
-                    .then((value) {
-                  setState(() => myUser = value);
-
-                  // Navigator.push(context, MaterialPageRoute(
-                  //   builder: (context) => const DashBoard();
-                  // );
+                  .connect(email.text, password.text)
+                  .then((value) {
+                    setState(() => myUser = value);
+                    
+                    Navigator.push(
+                      context, 
+                      MaterialPageRoute(
+                        builder: (context) => const ContactPage()
+                      )
+                    );
                 }).catchError((onError) {
                   // PopError();
                 });
@@ -95,10 +96,13 @@ class _LoginPageState extends State<LoginPage> {
                   .subscribe(email.text, password.text)
                   .then((value) => setState(() {
                     myUser = value;
-                    // Navigator.push(context,
-                    //     MaterialPageRoute(builder: (context) {
-                    //     return const DashBoard();
-                    // }));
+
+                    Navigator.push(
+                      context, 
+                      MaterialPageRoute(
+                        builder: (context) => const ContactPage()
+                      )
+                    );
                   })).catchError((onError) {
                   // PopError();
                 });
