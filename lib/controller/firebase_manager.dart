@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -16,7 +18,8 @@ class FirebaseManager {
         String lastname,
         String email,
         String password,
-        String phonenumber
+        String phonenumber,
+        String? avatar
     ) async {
         UserCredential authResult = await auth.createUserWithEmailAndPassword(
             email: email,
@@ -31,10 +34,19 @@ class FirebaseManager {
                 "firstname": firstname,
                 "lastname": lastname,
                 "email": email,
-                "phonenumber": phonenumber,
+                "phonenumber": phonenumber
             };
 
             addUser(uid, map);
+
+            if (avatar != null) {
+                String filename = avatar.split("/").last;
+                TaskSnapshot snapshot = await storage.ref("avatars/$filename").putFile(File(avatar));
+                String url = await snapshot.ref.getDownloadURL();
+
+                updateUser(uid, { "avatar": filename });
+            }
+
             return getUser(uid);
         }
     }

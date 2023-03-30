@@ -86,6 +86,28 @@ class _LoginPageState extends State<LoginPage> {
         return null;
     }
 
+    // Enable submit button if all inputs are valid
+    bool enableSubmitButton() {
+        final emailAndPasswordValid = formFieldsDirty["email"] &&
+            formFieldsDirty["password"] &&
+            validator(_email.text, "email") == null &&
+            validator(_password.text, "password") == null;
+
+        final firstNameLastNamePhoneValid = formFieldsDirty["firstname"] &&
+            formFieldsDirty["lastname"] &&
+            formFieldsDirty["phonenumber"] &&
+            validator(_firstname.text, "firstname") == null &&
+            validator(_lastname.text, "lastname") == null &&
+            validator(_phonenumber.text, "phonenumber") == null &&
+            validator(_email.text, "email") == null &&
+            validator(_password.text, "password") == null;
+
+        return selection[0] ? emailAndPasswordValid : firstNameLastNamePhoneValid;
+    }
+
+    // Update an field to undirty
+    void updateFormFieldDirty(String field, bool dirty) => setState(() => formFieldsDirty[field] = dirty);
+
     // Popin to upload avatar
     void popinUploadAvatar() {
         showDialog(
@@ -199,7 +221,7 @@ class _LoginPageState extends State<LoginPage> {
                         "password"
                     ),
                     sizedBoxWidget(24),
-                    button()
+                    connectButton()
                 ],
             ),
         );
@@ -351,35 +373,49 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     // ElevatedButton widget
-    Widget button() => ElevatedButton(
-        onPressed: () => selection[0]
-            ? FirebaseManager()
-                .connect(_email.text, _password.text)
-                .then((value) {
-                    setState(() => myUser = value);
-                    Navigator.push(
-                        context, 
-                        MaterialPageRoute(
-                            builder: (context) => const ContactPage()
-                        )
-                    );
-                }).catchError((onError) {
-                    popinError();
-                })
-            : FirebaseManager()
-                .subscribe(_firstname.text, _lastname.text, _email.text, _password.text, _phonenumber.text)
-                .then((value) {
-                    setState(() => myUser = value);
-                    Navigator.push(
-                        context, 
-                        MaterialPageRoute(
-                            builder: (context) => const ContactPage()
-                        )
-                    );
-                }).catchError((onError) {
-                // PopError();
-                }
+    Widget connectButton() => ElevatedButton(
+        style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            disabledBackgroundColor: Colors.grey[300],
         ),
+        onPressed: enableSubmitButton()
+            ? () => selection[0]
+                ? FirebaseManager()
+                    .connect(_email.text, _password.text)
+                    .then((value) {
+                        setState(() => myUser = value);
+                        Navigator.push(
+                            context, 
+                            MaterialPageRoute(
+                                builder: (context) => const ContactPage()
+                            )
+                        );
+                    }).catchError((onError) {
+                        print(onError);
+                        popinError();
+                    })
+                : FirebaseManager()
+                    .subscribe(
+                        _firstname.text,
+                        _lastname.text, 
+                        _email.text,
+                        _password.text,
+                        _phonenumber.text,
+                        image!.path
+                    )
+                    .then((value) {
+                        setState(() => myUser = value);
+                        Navigator.push(
+                            context, 
+                            MaterialPageRoute(
+                                builder: (context) => const ContactPage()
+                            )
+                        );
+                    }).catchError((onError) {
+                        print(onError);
+                        popinError();
+                    }
+        ) : null,
         child: Text(selection[0] ? "Connexion" : "Inscription")
     );
 
