@@ -1,52 +1,51 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Utilisateur {
-  late String uid;
-  late String email;
-  late List<String>? friends;
-  late List<String>? conversations;
+class Conversation {
+  late String id;
+  late List<String>? users;
+  late List<dynamic>? messages;
 
-  DateTime? birthday;
-
-  String? pseudo;
-  String? lastname;
-  String? firstname;
-  String? phonenumber;
-  String? avatar;
-
-  Utilisateur.empty() {
-    uid = "";
-    email = "";
-    friends = [];
-    conversations = [];
+  Conversation.empty() {
+    id = "";
+    users = [];
+    messages = [];
   }
 
-  Utilisateur(DocumentSnapshot snapshot) {
-    uid = snapshot.id;
+  Conversation(DocumentSnapshot snapshot) {
+    id = snapshot.id;
     Map<String, dynamic> map = snapshot.data() as Map<String, dynamic>;
 
-    Timestamp? timestamp = map["birthday"];
-    birthday = timestamp?.toDate();
-
-    pseudo = map["pseudo"];
-    email = map["email"];
-    lastname = map["lastname"];
-    firstname = map["firstname"];
-    avatar = map["avatar"];
-    phonenumber = map["phonenumber"];
-    conversations = map["conversations"];
-    friends = map["friends"];
+    users = map["users"]?.cast<String>();
+    messages = (map["messages"] as List<dynamic>?);
   }
 
-  Future<void> addFriend(String uid) async {
-    if (friends != null && friends?.indexOf(uid) != -1) {
-      throw Future.error("Already a friend !");
-    }
-    friends ??= [];
-    friends?.add(uid);
-    await FirebaseFirestore.instance
-        .collection("users")
-        .doc(this.uid)
-        .update({"friends": friends});
+  static getConversation(String id) {
+    return FirebaseFirestore.instance
+        .collection("conversations")
+        .doc(id)
+        .get()
+        .then((value) => Conversation(value));
+  }
+
+  getConversations() {
+    return FirebaseFirestore.instance
+        .collection("conversations")
+        .get()
+        .then((value) => value.docs.map((e) => Conversation(e)).toList());
+  }
+
+  sendMessage(message, sender) {
+    return FirebaseFirestore.instance
+        .collection("conversations")
+        .doc(id)
+        .update({
+      "messages": FieldValue.arrayUnion([
+        {
+          "message": message,
+          "sender": sender,
+          "time": DateTime.now().toString()
+        }
+      ])
+    });
   }
 }
