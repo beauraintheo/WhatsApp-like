@@ -26,6 +26,8 @@ class _ConversationPage extends State<ConversationPage> {
     late final Future<Utilisateur> friend;
     late Future<Conversation> conversation;
 
+    TextEditingController _message = TextEditingController();
+
     @override
     void initState() {
         friend = firebaseManager.getUser(widget.friendId);
@@ -69,8 +71,9 @@ class _ConversationPage extends State<ConversationPage> {
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                    StreamBuilder<QuerySnapshot>(
-                        stream: FirebaseManager().cloudConversations.where("UID",isEqualTo: widget.conversationId).snapshots(),
+                    Flexible(
+                        child:  StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseManager().cloudConversations.where("cid", isEqualTo: widget.conversationId).snapshots(),
                         builder: (context, snap) {
                             List messages = snap.data?.docs ?? [];
                             print(messages);
@@ -78,6 +81,7 @@ class _ConversationPage extends State<ConversationPage> {
                             if (messages.isEmpty) return const Text("Pas de messages");
                             else {
                                 return ListView.builder(
+                                    shrinkWrap: true,
                                     itemCount: messages.length,
                                     itemBuilder: (context, index) {
                                         var currentMessage = messages[index];
@@ -101,9 +105,39 @@ class _ConversationPage extends State<ConversationPage> {
                             }
                         }
                     ),
+                    ),
+                    const SizedBox(height: 48),
+                    SizedBox(
+                        width: 300,
+                        child: Column(
+                            children: [
+                                TextField(
+                                    controller: _message,
+                                    decoration: const InputDecoration(
+                                        hintText: "Ecrivez votre message ...",
+                                        border: OutlineInputBorder(),
+                                        suffixIcon: Icon(Icons.send),
+                                    ),
+                                ),
+                                ElevatedButton(
+                                    onPressed: () async => submitMessage(_message.text),
+                                    child: const Text("Sumbit")
+                                )
+                            ],
+                        )
+                    )
                 ],
             ),
         );
+    }
+
+    void submitMessage(String text) async {
+        if (text.isNotEmpty) {
+            Conversation conv = await Conversation.getConversation(widget.conversationId);
+            print(conv);
+            await conv.sendMessage(text, widget.myUserId);
+            _message.clear();
+        }
     }
 
     Widget inkWellWidget() => InkWell(

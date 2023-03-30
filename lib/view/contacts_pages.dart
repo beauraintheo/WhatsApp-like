@@ -80,7 +80,10 @@ class _ConversationPage extends State<ContactPage> {
     return FutureBuilder(
         future: _calculation2,
         builder: (context, AsyncSnapshot snapshot) {
-          if (snapshot.hasData) {
+            print(snapshot.data);
+          if (snapshot.hasData && snapshot.data.isEmpty) {
+            return Text("Vous n'avez pas encore de conversations active");
+          } else if (snapshot.hasData) {
             return SingleChildScrollView(
                 scrollDirection: Axis.vertical,
                 child: Column(
@@ -121,7 +124,7 @@ class _ConversationPage extends State<ContactPage> {
                                                     .data![index].users[0],
                                             myUser.conversations![index])));
                               },
-                              child: const Text('Create Conversation'),
+                              child: const Text('Go to Conversation'),
                             ),
                           ],
                         ),
@@ -141,7 +144,9 @@ class _ConversationPage extends State<ContactPage> {
     return FutureBuilder(
       future: _calculation,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (snapshot.hasData) {
+        if (snapshot.hasData && snapshot.data.isEmpty) {
+          return Text("Vous n'avez pas encore d'amis");
+        } else if (snapshot.hasData) {
           List<Utilisateur> userList = snapshot.data!;
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,

@@ -13,7 +13,7 @@ class Conversation {
 
     Conversation(DocumentSnapshot snapshot) {
         id = snapshot.id;
-        Map<String, dynamic> map = snapshot.data() as Map<String, dynamic>;
+        Map<String, dynamic>? map = snapshot.data() as Map<String, dynamic>;
 
         users = map["users"]?.cast<String>();
         messages = (map["messages"] as List<dynamic>?);
@@ -36,6 +36,7 @@ class Conversation {
     }
 
     sendMessage(message, sender) {
+        print(message);
         return FirebaseFirestore.instance
             .collection("conversations")
             .doc(id)

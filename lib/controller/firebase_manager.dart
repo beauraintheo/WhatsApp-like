@@ -110,7 +110,7 @@ class FirebaseManager {
     // Get the ID of the conversation
     String conversationId = conversationRef.id;
 
-    cloudConversations.doc(conversationId).update({ conversationId: conversationId });
+    cloudConversations.doc(conversationId).update({ "cid": conversationId });
 
     // Store the conversation ID in each user's document
     await cloudUsers.doc(uid1).update({
