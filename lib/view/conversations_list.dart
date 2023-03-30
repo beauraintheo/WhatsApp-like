@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:whatsapp_like/controller/firebase_manager.dart';
-import 'package:whatsapp_like/model/utilisateur.dart';
 import 'package:whatsapp_like/controller/global.dart';
 import 'package:whatsapp_like/view/contacts_pages.dart';
 
-class ContactPage extends StatefulWidget {
-  const ContactPage({Key? key}) : super(key: key);
+class ConversationsPage extends StatefulWidget {
+  const ConversationsPage({Key? key}) : super(key: key);
 
   @override
-  State<ContactPage> createState() => _ConversationPage();
+  State<ConversationsPage> createState() => _ConversationPage();
 }
 
-class _ConversationPage extends State<ContactPage> {
-  TextEditingController email = TextEditingController();
-
+class _ConversationPage extends State<ConversationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,29 +30,31 @@ class _ConversationPage extends State<ContactPage> {
     );
   }
 
-  Widget textFieldWidget(TextEditingController controller, bool obscure) {
+  Widget TextFieldWidget(TextEditingController controller, bool obscure) {
     return TextField(
       controller: controller,
       obscureText: obscure,
       decoration: InputDecoration(
-          border: OutlineInputBorder(), labelText: "email de l'ami"),
+          border: OutlineInputBorder(), labelText: controller.text),
     );
   }
 
   Widget addFriend() {
+    TextEditingController email = TextEditingController();
     return Center(
-        child: Column(
+        child: Row(
       children: [
-        textFieldWidget(email, false),
+        TextFieldWidget(email, false),
         ElevatedButton(
             onPressed: () async {
-              Utilisateur? user =
+              print("hello");
+              /* Utilisateur? user =
                   await FirebaseManager().getUserByEmail(email.text);
-
-              myUser.addFriend(user.uid);
-              user.addFriend(myUser.uid);
+              if (user != null) {
+                FirebaseManager().addFriend(user.uid);
+              } */
             },
-            child: const Text("Add friend"))
+            child: Text("Add friend"))
       ],
     ));
   }
