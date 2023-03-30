@@ -354,7 +354,6 @@ class _LoginPageState extends State<LoginPage> {
                             )
                         );
                     }).catchError((onError) {
-                        print(onError);
                         popinError();
                     })
                 : FirebaseManager()
@@ -375,7 +374,6 @@ class _LoginPageState extends State<LoginPage> {
                             )
                         );
                     }).catchError((onError) {
-                        print(onError);
                         popinError();
                     }
         ) : null,
