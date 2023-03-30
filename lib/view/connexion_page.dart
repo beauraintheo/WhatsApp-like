@@ -363,7 +363,7 @@ class _LoginPageState extends State<LoginPage> {
                         _email.text,
                         _password.text,
                         _phonenumber.text,
-                        image!.path
+                        image
                     )
                     .then((value) {
                         setState(() => myUser = value);

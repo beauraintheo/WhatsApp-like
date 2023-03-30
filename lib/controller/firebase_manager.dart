@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:whatsapp_like/model/utilisateur.dart';
 
 class FirebaseManager {
@@ -20,7 +21,7 @@ class FirebaseManager {
         String email,
         String password,
         String phonenumber,
-        String? avatar
+        XFile? avatar
     ) async {
         UserCredential authResult = await auth.createUserWithEmailAndPassword(
             email: email,
@@ -41,11 +42,11 @@ class FirebaseManager {
             addUser(uid, map);
 
             if (avatar != null) {
-                String filename = avatar.split("/").last;
-                TaskSnapshot snapshot = await storage.ref("avatars/$filename").putFile(File(avatar));
+                String filename = avatar.path.split("/").last;
+                TaskSnapshot snapshot = await storage.ref("avatars/$filename").putFile(File(avatar.path));
                 String url = await snapshot.ref.getDownloadURL();
 
-                updateUser(uid, { "avatar": filename });
+                updateUser(uid, { "avatar": url });
             }
 
             return getUser(uid);
