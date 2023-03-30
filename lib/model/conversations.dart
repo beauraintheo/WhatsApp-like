@@ -3,7 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Utilisateur {
   late String uid;
   late String email;
-  late List<dynamic>? friends;
+  late List<String>? friends;
+  late List<String>? conversations;
 
   DateTime? birthday;
 
@@ -17,6 +18,7 @@ class Utilisateur {
     uid = "";
     email = "";
     friends = [];
+    conversations = [];
   }
 
   Utilisateur(DocumentSnapshot snapshot) {
@@ -32,6 +34,7 @@ class Utilisateur {
     firstname = map["firstname"];
     avatar = map["avatar"];
     phonenumber = map["phonenumber"];
+    conversations = map["conversations"];
     friends = map["friends"];
   }
 

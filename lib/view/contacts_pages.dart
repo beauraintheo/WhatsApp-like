@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:whatsapp_like/controller/firebase_manager.dart';
 import 'package:whatsapp_like/model/utilisateur.dart';
 import 'package:whatsapp_like/controller/global.dart';
-import 'package:whatsapp_like/view/contacts_pages.dart';
 
 class ContactPage extends StatefulWidget {
   const ContactPage({Key? key}) : super(key: key);
@@ -37,7 +36,7 @@ class _ConversationPage extends State<ContactPage> {
     return TextField(
       controller: controller,
       obscureText: obscure,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
           border: OutlineInputBorder(), labelText: "email de l'ami"),
     );
   }
@@ -58,5 +57,15 @@ class _ConversationPage extends State<ContactPage> {
             child: const Text("Add friend"))
       ],
     ));
+  }
+
+  Widget conversationsList() {
+    return ListView.builder(
+        itemCount: myUser.friends?.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(myUser.friends?[index] ?? ""),
+          );
+        });
   }
 }
