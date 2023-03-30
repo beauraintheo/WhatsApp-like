@@ -7,10 +7,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:whatsapp_like/model/utilisateur.dart';
 
 class FirebaseManager {
-    final auth = FirebaseAuth.instance;
-    final storage = FirebaseStorage.instance;
-    final cloudMessages = FirebaseFirestore.instance.collection("messages");
-    final cloudUsers = FirebaseFirestore.instance.collection("users");
+  final auth = FirebaseAuth.instance;
+  final storage = FirebaseStorage.instance;
+  final cloudMessages = FirebaseFirestore.instance.collection("messages");
+  final cloudUsers = FirebaseFirestore.instance.collection("users");
 
     // Create an user
     Future<Utilisateur> subscribe(
@@ -56,25 +56,36 @@ class FirebaseManager {
         cloudUsers.doc(uid).set(map);
     }
 
-    // Get an user by uid
-    Future<Utilisateur> getUser(String uid) async {
-        DocumentSnapshot snapshot = await cloudUsers.doc(uid).get();
-        
-        return Utilisateur(snapshot);
-    }
-  
-    // Connect an user
-    Future<Utilisateur> connect(String email, String password) async {
-        UserCredential userCredential = await auth.signInWithEmailAndPassword(email: email, password: password);
-        String? uid = userCredential.user?.uid;
-
-        return uid == null 
-            ? Future.error(("Connection problem !"))
-            : getUser(uid);
-    }
-
     // Update an user
     updateUser(String uid, Map<String, dynamic> map){
         cloudUsers.doc(uid).update(map);
     }
+
+    // Get an user by uid
+    Future<Utilisateur> getUser(String uid) async {
+        DocumentSnapshot snapshot = await cloudUsers.doc(uid).get();
+
+        return Utilisateur(snapshot);
+    }
+
+    Future<Utilisateur> getUserByEmail(String email) async {
+        QuerySnapshot snapshot =
+            await cloudUsers.where("email", isEqualTo: email).get();
+        List<QueryDocumentSnapshot> docs = snapshot.docs;
+
+        if (docs.isEmpty) {
+            return Future.error(("No user found !"));
+        } else {
+            return Utilisateur(docs[0]);
+        }
+    }
+
+    // Connect an user
+    Future<Utilisateur> connect(String email, String password) async {
+        UserCredential userCredential =
+            await auth.signInWithEmailAndPassword(email: email, password: password);
+        String? uid = userCredential.user?.uid;
+
+        return uid == null ? Future.error(("Connection problem !")) : getUser(uid);
+      }
 }
