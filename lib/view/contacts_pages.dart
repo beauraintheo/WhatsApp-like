@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:whatsapp_like/controller/firebase_manager.dart';
 import 'package:whatsapp_like/model/utilisateur.dart';
 import 'package:whatsapp_like/controller/global.dart';
+import 'package:whatsapp_like/view/conversation_page.dart';
 
 class ContactPage extends StatefulWidget {
   const ContactPage({Key? key}) : super(key: key);
@@ -90,6 +91,9 @@ class _ConversationPage extends State<ContactPage> {
               ElevatedButton(
                 onPressed: () {
                   FirebaseManager().createConversation(myUser.uid, friendId);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ConversationPage(myUser.uid, friendId)));
                 },
                 child: const Text('Create Conversation'),
               ),
