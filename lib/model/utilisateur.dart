@@ -4,6 +4,7 @@ class Utilisateur {
   late String uid;
   late String email;
   late List<dynamic>? friends;
+  late List<dynamic>? conversations;
 
   DateTime? birthday;
 
@@ -17,6 +18,7 @@ class Utilisateur {
     uid = "";
     email = "";
     friends = [];
+    conversations = [];
   }
 
   Utilisateur(DocumentSnapshot snapshot) {
@@ -33,6 +35,7 @@ class Utilisateur {
     avatar = map["avatar"];
     phonenumber = map["phonenumber"];
     friends = map["friends"];
+    conversations = map["conversations"];
   }
 
   Future<void> addFriend(String uid) async {

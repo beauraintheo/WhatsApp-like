@@ -27,7 +27,14 @@ class _ConversationPage extends State<ContactPage> {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [addFriend()],
+        children: [
+          addFriend(),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 200,
+            child: friendsList(),
+          ),
+        ],
       ),
     );
   }
@@ -42,30 +49,54 @@ class _ConversationPage extends State<ContactPage> {
   }
 
   Widget addFriend() {
-    return Center(
-        child: Column(
+    return Column(
       children: [
         textFieldWidget(email, false),
         ElevatedButton(
-            onPressed: () async {
-              Utilisateur? user =
-                  await FirebaseManager().getUserByEmail(email.text);
+          onPressed: () async {
+            Utilisateur? user =
+                await FirebaseManager().getUserByEmail(email.text);
 
-              myUser.addFriend(user.uid);
-              user.addFriend(myUser.uid);
-            },
-            child: const Text("Add friend"))
+            myUser.addFriend(user.uid);
+            user.addFriend(myUser.uid);
+          },
+          child: const Text("Add friend"),
+        ),
       ],
-    ));
+    );
   }
 
   Widget conversationsList() {
     return ListView.builder(
-        itemCount: myUser.friends?.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(myUser.friends?[index] ?? ""),
-          );
-        });
+      itemCount: myUser.conversations?.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(myUser.conversations?[index] ?? ""),
+        );
+      },
+    );
+  }
+
+  Widget friendsList() {
+    return ListView.builder(
+      itemCount: myUser.friends?.length,
+      itemBuilder: (context, index) {
+        String friendId = myUser.friends![index];
+        return ListTile(
+          title: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(friendId),
+              ElevatedButton(
+                onPressed: () {
+                  FirebaseManager().createConversation(myUser.uid, friendId);
+                },
+                child: const Text('Create Conversation'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
