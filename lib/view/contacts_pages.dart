@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:whatsapp_like/controller/firebase_manager.dart';
+import 'package:whatsapp_like/model/conversations.dart';
 import 'package:whatsapp_like/model/utilisateur.dart';
 import 'package:whatsapp_like/controller/global.dart';
 import 'package:whatsapp_like/view/conversation_page.dart';
@@ -18,23 +19,28 @@ class _ConversationPage extends State<ContactPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.only(top: 60.0, left: 16, right: 16),
         child: bodyPage(),
       ),
     );
   }
 
   Widget bodyPage() {
-    return Center(
+    return SingleChildScrollView(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           addFriend(),
           const SizedBox(height: 16),
+          const Text("DÃ©marrer une nouvelle conversation"),
+          friendsList(),
+          const SizedBox(height: 16),
+          const Text("Mes conversations"),
           SizedBox(
-            height: 200,
-            child: friendsList(),
-          ),
+            height: 600,
+            child: conversationsList(),
+          )
         ],
       ),
     );
@@ -57,7 +63,6 @@ class _ConversationPage extends State<ContactPage> {
           onPressed: () async {
             Utilisateur? user =
                 await FirebaseManager().getUserByEmail(email.text);
-
             myUser.addFriend(user.uid);
             user.addFriend(myUser.uid);
           },
@@ -67,39 +72,113 @@ class _ConversationPage extends State<ContactPage> {
     );
   }
 
+  final Future<List<Conversation>> _calculation2 = Future.wait(
+      myUser.conversations?.map((id) => Conversation.getConversation(id)) ??
+          []);
+
   Widget conversationsList() {
-    return ListView.builder(
-      itemCount: myUser.conversations?.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(myUser.conversations?[index] ?? ""),
-        );
-      },
-    );
+    return FutureBuilder(
+        future: _calculation2,
+        builder: (context, AsyncSnapshot snapshot) {
+          if (snapshot.hasData) {
+            return SingleChildScrollView(
+                scrollDirection: Axis.vertical,
+                child: Column(
+                  children: [
+                    for (dynamic index = 0;
+                        index < myUser.conversations?.length ?? 0;
+                        index++)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            FutureBuilder(
+                                future: FirebaseManager().getUser(
+                                    snapshot.data![index].users[0] == myUser.uid
+                                        ? snapshot.data![index].users[1]
+                                        : snapshot.data![index].users[0]),
+                                builder: (context,
+                                    AsyncSnapshot<Utilisateur?> userSnapshot) {
+                                  if (userSnapshot.hasData) {
+                                    return Text(
+                                        userSnapshot.data!.firstname ?? '');
+                                  } else {
+                                    return const CircularProgressIndicator();
+                                  }
+                                }),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ConversationPage(
+                                            myUser.uid,
+                                            snapshot.data![index].users[0] ==
+                                                    myUser.uid
+                                                ? snapshot.data![index].users[1]
+                                                : snapshot
+                                                    .data![index].users[0],
+                                            myUser.conversations![index])));
+                              },
+                              child: const Text('Create Conversation'),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ));
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        });
   }
 
+  final Future<List<Utilisateur>> _calculation = Future.wait(
+      myUser.friends?.map((id) => FirebaseManager().getUser(id)) ?? []);
+
   Widget friendsList() {
-    return ListView.builder(
-      itemCount: myUser.friends?.length,
-      itemBuilder: (context, index) {
-        String friendId = myUser.friends![index];
-        return ListTile(
-          title: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(friendId),
-              ElevatedButton(
-                onPressed: () {
-                  FirebaseManager().createConversation(myUser.uid, friendId);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ConversationPage(myUser.uid, friendId)));
-                },
-                child: const Text('Create Conversation'),
-              ),
-            ],
-          ),
-        );
+    return FutureBuilder(
+      future: _calculation,
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.hasData) {
+          List<Utilisateur> userList = snapshot.data!;
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (dynamic index = 0;
+                    index < myUser.friends?.length ?? 0;
+                    index++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Row(
+                      children: [
+                        Text(userList
+                                .firstWhere((element) =>
+                                    element.uid == myUser.friends![index])
+                                .firstname ??
+                            ""),
+                        ElevatedButton(
+                          onPressed: () {
+                            FirebaseManager().createConversation(
+                                myUser.uid, myUser.friends![index]);
+                          },
+                          child: const Text('+'),
+                          style: ButtonStyle(
+                            minimumSize:
+                                MaterialStateProperty.all<Size>(Size(24, 24)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          );
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
       },
     );
   }

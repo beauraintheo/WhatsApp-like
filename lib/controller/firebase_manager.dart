@@ -98,7 +98,7 @@ class FirebaseManager {
   }
 
   // Create a conversation
-  Future<void> createConversation(String uid1, String uid2) async {
+  Future<String> createConversation(String uid1, String uid2) async {
     final Map<String, dynamic> map = {
       "users": [uid1, uid2],
       "messages": [],
@@ -110,6 +110,8 @@ class FirebaseManager {
     // Get the ID of the conversation
     String conversationId = conversationRef.id;
 
+    cloudConversations.doc(conversationId).update({ conversationId: conversationId });
+
     // Store the conversation ID in each user's document
     await cloudUsers.doc(uid1).update({
       "conversations": FieldValue.arrayUnion([conversationId])
@@ -117,5 +119,7 @@ class FirebaseManager {
     await cloudUsers.doc(uid2).update({
       "conversations": FieldValue.arrayUnion([conversationId])
     });
+
+    return conversationId;
   }
 }

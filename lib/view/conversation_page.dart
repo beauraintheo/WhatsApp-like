@@ -1,16 +1,20 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
 import 'package:whatsapp_like/controller/firebase_manager.dart';
+import 'package:whatsapp_like/controller/global.dart';
+import 'package:whatsapp_like/model/conversations.dart';
 import 'package:whatsapp_like/model/utilisateur.dart';
 
 class ConversationPage extends StatefulWidget {
     final String myUserId;
     final String friendId;
+    final String conversationId;
 
-    const ConversationPage(this.myUserId, this.friendId, { super.key });
+    const ConversationPage(this.myUserId, this.friendId, this.conversationId, { super.key });
 
     @override
     State<ConversationPage> createState() => _ConversationPage();
@@ -20,10 +24,12 @@ class _ConversationPage extends State<ConversationPage> {
     final FirebaseManager firebaseManager = FirebaseManager();
 
     late final Future<Utilisateur> friend;
+    late Future<Conversation> conversation;
 
     @override
     void initState() {
         friend = firebaseManager.getUser(widget.friendId);
+        conversation = Conversation.getConversation(widget.myUserId);
         super.initState();
     }
 
@@ -63,27 +69,37 @@ class _ConversationPage extends State<ConversationPage> {
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                    Text(widget.myUserId),
-                    Text(widget.friendId),
-                    FutureBuilder<Utilisateur>(
-                        future: friend,
-                        builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                                final friend = snapshot.data!;
+                    StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseManager().cloudConversations.where("UID",isEqualTo: widget.conversationId).snapshots(),
+                        builder: (context, snap) {
+                            List messages = snap.data?.docs ?? [];
+                            print(messages);
 
-                                return Column(
-                                    children: [
-                                        Text(friend.firstname ?? ""),
-                                        Text(friend.email),
-                                        Text(friend.avatar ?? "")
-                                    ],
+                            if (messages.isEmpty) return const Text("Pas de messages");
+                            else {
+                                return ListView.builder(
+                                    itemCount: messages.length,
+                                    itemBuilder: (context, index) {
+                                        var currentMessage = messages[index];
+
+                                        return Card(
+                                            elevation: 5.0,
+                                            color: Colors.grey,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                                            child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: Column(
+                                                    children: [
+                                                        Text(currentMessage["message"]),
+                                                        Text(currentMessage["date"]),
+                                                    ],
+                                                ),
+                                            ),
+                                        );
+                                    }
                                 );
-                            } else if (snapshot.hasError) {
-                                return Text('Error loading friend data: ${snapshot.error}');
-                            } else {
-                                return CircularProgressIndicator();
                             }
-                        },
+                        }
                     ),
                 ],
             ),
