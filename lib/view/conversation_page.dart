@@ -140,11 +140,13 @@ class _ConversationPage extends State<ConversationPage> {
                             children: [
                                 Text(
                                     "${friend.firstname} ${friend.lastname}",
-                                    textAlign: TextAlign.left
+                                    textAlign: TextAlign.left,
+                                    style: const TextStyle(fontSize: 24)
                                 ),
                                 Text(
                                     friend.phonenumber ?? "",
-                                    textAlign: TextAlign.left
+                                    textAlign: TextAlign.left,
+                                    style: const TextStyle(fontSize: 14)
                                 ),
                             ],
                         );
